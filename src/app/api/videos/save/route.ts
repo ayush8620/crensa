@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import { db } from '@/lib/database'
 import { videos, users, creatorProfiles, series, seriesVideos } from '@/lib/database/schema'
 import { eq, sql, and } from 'drizzle-orm'
+import { CacheService } from '@/lib/services/cacheService'
 
 cloudinary.config({
  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -78,21 +79,14 @@ export async function POST(request: NextRequest) {
  { status: 403 }
  )
  }
+ }
 
- if (coinPrice !== 0) {
+ // Validate coin price for all videos (series or standalone)
+ if (coinPrice < 0 || coinPrice > 2000) {
  return NextResponse.json(
- { error: 'Videos in a series cannot have individual prices. The coin price must be 0.' },
+ { error: 'Video price must be between 0 and 2000 coins' },
  { status: 400 }
  )
- }
- } else {
-
- if (coinPrice < 1 || coinPrice > 2000) {
- return NextResponse.json(
- { error: 'Standalone video price must be between 1 and 2000 coins' },
- { status: 400 }
- )
- }
  }
 
  const actualPublicId = cloudinaryResult.public_id || publicId
@@ -200,6 +194,12 @@ export async function POST(request: NextRequest) {
 
  return newVideo
  })
+
+ // Invalidate browse/discover cache so new video/series content appears immediately
+ CacheService.deleteByPrefix('landing:unified-content:')
+ if (result.seriesId) {
+ CacheService.delete('landing:featured-series')
+ }
 
  return NextResponse.json({
  success: true,

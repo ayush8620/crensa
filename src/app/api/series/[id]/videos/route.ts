@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/database";
 import { videos, series, seriesVideos } from "@/lib/database/schema";
 import { eq, asc, and, inArray, sql } from "drizzle-orm";
+import { CacheService } from "@/lib/services/cacheService";
 
 export async function GET(
  request: NextRequest,
@@ -24,15 +25,13 @@ export async function GET(
  );
  }
 
- // Fetch videos with their access control settings
+ // Fetch videos in the series
  const seriesVideosList = await db
  .select({
  svId: seriesVideos.id,
  svSeriesId: seriesVideos.seriesId,
  svVideoId: seriesVideos.videoId,
  svOrderIndex: seriesVideos.orderIndex,
- svAccessType: seriesVideos.accessType,
- svIndividualCoinPrice: seriesVideos.individualCoinPrice,
  svCreatedAt: seriesVideos.createdAt,
  videoId: videos.id,
  videoTitle: videos.title,
@@ -46,7 +45,10 @@ export async function GET(
  })
  .from(seriesVideos)
  .innerJoin(videos, eq(seriesVideos.videoId, videos.id))
- .where(eq(seriesVideos.seriesId, seriesId))
+ .where(and(
+ eq(seriesVideos.seriesId, seriesId),
+ eq(videos.isActive, true)
+ ))
  .orderBy(asc(seriesVideos.orderIndex));
 
  return NextResponse.json({
@@ -56,8 +58,6 @@ export async function GET(
  videoId: sv.svVideoId,
  seriesId: sv.svSeriesId,
  orderIndex: sv.svOrderIndex,
- accessType: sv.svAccessType || "series-only",
- individualCoinPrice: sv.svIndividualCoinPrice || 0,
  createdAt: sv.svCreatedAt,
  video: {
  id: sv.videoId,
@@ -162,8 +162,6 @@ export async function POST(
  seriesId,
  videoId,
  orderIndex: nextOrderIndex++,
- accessType: "series-only" as const,
- individualCoinPrice: 0,
  }));
 
  await db.insert(seriesVideos).values(newSeriesVideos);
@@ -185,6 +183,9 @@ export async function POST(
  totalDuration: updatedStats.totalDuration,
  })
  .where(eq(series.id, seriesId));
+
+ // Invalidate browse/discover cache so updated series appears immediately
+ CacheService.deleteByPrefix('landing:unified-content:');
 
  return NextResponse.json({
  success: true,

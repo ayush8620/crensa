@@ -96,22 +96,6 @@ function CreatorSeriesEditContent() {
  loadVideos();
  };
 
- const handleAccessTypeChanged = (videoId: string, accessType: string, coinPrice?: number) => {
- // Refresh videos list
- const loadVideos = async () => {
- try {
- const response = await fetch(`/api/series/${seriesId}/videos`);
- if (response.ok) {
- const data = await response.json();
- setSeriesVideos(data.videos || []);
- }
- } catch (error) {
- console.error("Failed to refresh videos:", error);
- }
- };
- loadVideos();
- };
-
  if (loading) {
  return <LoadingScreen message="Loading series..." variant="dashboard" fullScreen={false} />;
  }
@@ -190,7 +174,6 @@ function CreatorSeriesEditContent() {
  onVideoAdded={handleVideoAdded}
  onVideoRemoved={handleVideoRemoved}
  onOrderChanged={handleOrderChanged}
- onAccessTypeChanged={handleAccessTypeChanged}
  />
  )}
  </div>

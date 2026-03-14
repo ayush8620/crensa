@@ -313,11 +313,7 @@ export default function VideoUpload({
     const validateMetadata = useCallback((): string[] => {
         const errors: string[] = []
 
-        if (metadata.seriesId && metadata.coinPrice !== 0) {
-            errors.push('Videos in a series must have a coin price of 0')
-        }
-
-        if (!metadata.seriesId && metadata.coinPrice < 0) {
+        if (metadata.coinPrice < 0) {
             errors.push('Coin price must be 0 or greater')
         }
 
@@ -326,7 +322,7 @@ export default function VideoUpload({
         }
 
         return errors
-    }, [metadata.seriesId, metadata.coinPrice])
+    }, [metadata.coinPrice])
 
     const uploadVideo = async () => {
         if (!uploadState.file || !metadata.title || !metadata.category) {
@@ -424,8 +420,8 @@ export default function VideoUpload({
 
             const metadataToSend = {
                 ...metadata,
-                coinPrice: metadata.seriesId ? 0 : metadata.coinPrice,
-                creditCost: metadata.seriesId ? 0 : metadata.creditCost
+                coinPrice: metadata.coinPrice,
+                creditCost: metadata.coinPrice / 20 // Convert coins to credits for backward compatibility
             }
 
             console.log('=== UPLOAD DEBUG ===')
@@ -746,31 +742,28 @@ export default function VideoUpload({
 
                                 <div>
                                     <CoinInput
-                                        value={metadata.seriesId ? 0 : metadata.coinPrice}
+                                        value={metadata.coinPrice}
                                         onChange={(value) => {
+                                            setMetadata(prev => ({
+                                                ...prev,
+                                                coinPrice: value,
+                                                creditCost: value / 20 // Keep in sync for backward compatibility
+                                            }))
 
-                                            if (!metadata.seriesId) {
-                                                setMetadata(prev => ({
-                                                    ...prev,
-                                                    coinPrice: value,
-                                                    creditCost: value // Keep in sync for backward compatibility
-                                                }))
-
-                                                setValidationErrors([])
-                                            }
+                                            setValidationErrors([])
                                         }}
                                         label="Coin Price"
                                         showRupeeEquivalent
                                         placeholder="Enter coin price"
-                                        disabled={!!metadata.seriesId || metadata.coinPrice === 0}
+                                        disabled={metadata.coinPrice === 0}
                                     />
                                     {metadata.seriesId && (
                                         <div className="mt-2 flex items-center gap-2 text-sm text-purple-600">
                                             <CheckCircleIcon className="w-4 h-4" />
-                                            <span>Included in Series</span>
+                                            <span>Part of Series - Set individual price</span>
                                         </div>
                                     )}
-                                    {metadata.coinPrice === 0 && !metadata.seriesId && (
+                                    {metadata.coinPrice === 0 && (
                                         <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
                                             <CheckCircleIcon className="w-4 h-4" />
                                             <span>This video is free</span>
@@ -790,9 +783,7 @@ export default function VideoUpload({
                                                 const newMetadata = {
                                                     ...prev,
                                                     seriesId,
-
-                                                    coinPrice: seriesId ? 0 : (prev.coinPrice === 0 ? 20 : prev.coinPrice),
-                                                    creditCost: seriesId ? 0 : (prev.creditCost === 0 ? 20 : prev.creditCost)
+                                                    // No automatic price change - creator controls pricing
                                                 }
                                                 console.log('New metadata after series change:', newMetadata)
                                                 return newMetadata

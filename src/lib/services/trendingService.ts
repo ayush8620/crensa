@@ -363,7 +363,7 @@ export class TrendingService {
                     creatorId: seriesItem.creatorId,
                     viewCount: seriesItem.viewCount,
                     videoCount: seriesItem.videoCount,
-                    price: parseFloat(seriesItem.price.toString()),
+                    price: parseFloat((seriesItem.price ?? 0).toString()),
                     trendingScore: Math.round(trendingScore),
                     recentViews: seriesItem.recentSeriesViews,
                     category: seriesItem.category

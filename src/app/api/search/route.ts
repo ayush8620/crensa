@@ -305,7 +305,7 @@ export async function GET(request: NextRequest) {
  title: result.title,
  description: result.description || undefined,
  thumbnailUrl: result.thumbnailUrl || undefined,
- totalPrice: parseFloat(result.totalPrice),
+ totalPrice: parseFloat(result.totalPrice || '0'),
  videoCount: result.videoCount,
  viewCount: result.viewCount,
  category: result.category,

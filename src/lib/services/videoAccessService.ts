@@ -1,5 +1,5 @@
 import { db } from "@/lib/database";
-import { seriesVideos, seriesPurchases, coinTransactions, users } from "@/lib/database/schema";
+import { seriesVideos, seriesPurchases, coinTransactions, videos, users } from "@/lib/database/schema";
 import { eq, and } from "drizzle-orm";
 
 export interface VideoAccessResult {
@@ -12,7 +12,12 @@ export interface VideoAccessResult {
 
 export class VideoAccessService {
   /**
-   * Check if a user has access to a specific video in a series
+   * Check if a user has access to a specific video in a series.
+   *
+   * After the series refactor, seriesVideos no longer has accessType or
+   * individualCoinPrice columns. Access is determined solely by the video's
+   * own coinPrice: 0 = free, >0 = paid (requires individual purchase or
+   * series purchase).
    */
   static async checkVideoAccess(
     userId: string,
@@ -20,13 +25,14 @@ export class VideoAccessService {
     seriesId: string
   ): Promise<VideoAccessResult> {
     try {
-      // Get the video's access settings from seriesVideos
+      // Verify the video exists in this series and get its coin price
       const [seriesVideo] = await db
         .select({
-          accessType: seriesVideos.accessType,
-          individualCoinPrice: seriesVideos.individualCoinPrice,
+          videoId: seriesVideos.videoId,
+          coinPrice: videos.coinPrice,
         })
         .from(seriesVideos)
+        .innerJoin(videos, eq(seriesVideos.videoId, videos.id))
         .where(
           and(
             eq(seriesVideos.videoId, videoId),
@@ -44,10 +50,10 @@ export class VideoAccessService {
         };
       }
 
-      const accessType = seriesVideo.accessType || "series-only";
+      const coinPrice = seriesVideo.coinPrice ?? 0;
 
-      // Case 1: Free video - always accessible
-      if (accessType === "free") {
+      // Free video (coinPrice === 0) — always accessible to authenticated users
+      if (coinPrice === 0) {
         return {
           hasAccess: true,
           accessType: "free",
@@ -55,46 +61,37 @@ export class VideoAccessService {
         };
       }
 
-      // Case 2: Paid video - check if user has purchased this specific video
-      if (accessType === "paid") {
-        const [videoPurchase] = await db
-          .select()
-          .from(coinTransactions)
-          .where(
-            and(
-              eq(coinTransactions.userId, userId),
-              eq(coinTransactions.relatedContentId, videoId),
-              eq(coinTransactions.relatedContentType, "video"),
-              eq(coinTransactions.transactionType, "spend")
-            )
+      // Paid video — check if user has purchased this specific video
+      const [videoPurchase] = await db
+        .select({ id: coinTransactions.id })
+        .from(coinTransactions)
+        .where(
+          and(
+            eq(coinTransactions.userId, userId),
+            eq(coinTransactions.relatedContentId, videoId),
+            eq(coinTransactions.relatedContentType, "video"),
+            eq(coinTransactions.transactionType, "spend")
           )
-          .limit(1);
+        )
+        .limit(1);
 
-        if (videoPurchase) {
-          return {
-            hasAccess: true,
-            accessType: "paid",
-            requiresPayment: false,
-          };
-        }
-
+      if (videoPurchase) {
         return {
-          hasAccess: false,
+          hasAccess: true,
           accessType: "paid",
-          requiresPayment: true,
-          coinPrice: seriesVideo.individualCoinPrice || 0,
-          reason: `This video requires ${seriesVideo.individualCoinPrice} coins to watch`,
+          requiresPayment: false,
         };
       }
 
-      // Case 3: Series-only - check if user has purchased the series
+      // Check if user has purchased the parent series
       const [seriesPurchase] = await db
-        .select()
+        .select({ id: seriesPurchases.id })
         .from(seriesPurchases)
         .where(
           and(
             eq(seriesPurchases.userId, userId),
-            eq(seriesPurchases.seriesId, seriesId)
+            eq(seriesPurchases.seriesId, seriesId),
+            eq(seriesPurchases.status, "completed")
           )
         )
         .limit(1);
@@ -109,9 +106,10 @@ export class VideoAccessService {
 
       return {
         hasAccess: false,
-        accessType: "series-only",
+        accessType: "paid",
         requiresPayment: true,
-        reason: "This video is only accessible by purchasing the complete series",
+        coinPrice,
+        reason: `This video requires ${coinPrice} coins to watch`,
       };
     } catch (error) {
       console.error("Error checking video access:", error);
@@ -125,22 +123,21 @@ export class VideoAccessService {
   }
 
   /**
-   * Purchase individual paid video
+   * Purchase an individual paid video.
+   * Uses coinTransactionService pattern: deduct from member, credit to creator.
    */
   static async purchaseVideo(
     userId: string,
     videoId: string,
     seriesId: string,
     creatorId: string
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<{ success: boolean; message: string; alreadyOwned?: boolean }> {
     try {
-      // Get video access settings
+      // Verify video is in the series and get its price
       const [seriesVideo] = await db
-        .select({
-          accessType: seriesVideos.accessType,
-          individualCoinPrice: seriesVideos.individualCoinPrice,
-        })
+        .select({ coinPrice: videos.coinPrice })
         .from(seriesVideos)
+        .innerJoin(videos, eq(seriesVideos.videoId, videos.id))
         .where(
           and(
             eq(seriesVideos.videoId, videoId),
@@ -149,14 +146,14 @@ export class VideoAccessService {
         )
         .limit(1);
 
-      if (!seriesVideo || seriesVideo.accessType !== "paid") {
+      if (!seriesVideo || seriesVideo.coinPrice === 0) {
         return {
           success: false,
           message: "This video is not available for individual purchase",
         };
       }
 
-      const coinPrice = seriesVideo.individualCoinPrice || 0;
+      const coinPrice = seriesVideo.coinPrice;
 
       // Check user's coin balance
       const [user] = await db
@@ -174,7 +171,7 @@ export class VideoAccessService {
 
       // Check if already purchased
       const [existingPurchase] = await db
-        .select()
+        .select({ id: coinTransactions.id })
         .from(coinTransactions)
         .where(
           and(
@@ -188,23 +185,20 @@ export class VideoAccessService {
 
       if (existingPurchase) {
         return {
-          success: false,
+          success: true,
+          alreadyOwned: true,
           message: "You have already purchased this video",
         };
       }
 
-      // Create transaction and update balances
       await db.transaction(async (tx) => {
-        // Deduct coins from user
+        // Deduct coins from member
         await tx
           .update(users)
-          .set({
-            coinBalance: user.coinBalance - coinPrice,
-            totalCoinsSpent: user.coinBalance - coinPrice,
-          })
+          .set({ coinBalance: user.coinBalance - coinPrice })
           .where(eq(users.id, userId));
 
-        // Create coin transaction
+        // Record spend transaction
         await tx.insert(coinTransactions).values({
           userId,
           transactionType: "spend",
@@ -215,7 +209,7 @@ export class VideoAccessService {
           description: `Purchased video for ${coinPrice} coins`,
         });
 
-        // Add coins to creator (as earnings)
+        // Credit creator
         await tx.insert(coinTransactions).values({
           userId: creatorId,
           transactionType: "earn",
@@ -226,7 +220,6 @@ export class VideoAccessService {
           description: `Earned ${coinPrice} coins from video purchase`,
         });
 
-        // Update creator coin balance
         const [creator] = await tx
           .select({ coinBalance: users.coinBalance })
           .from(users)
@@ -236,28 +229,20 @@ export class VideoAccessService {
         if (creator) {
           await tx
             .update(users)
-            .set({
-              coinBalance: creator.coinBalance + coinPrice,
-            })
+            .set({ coinBalance: creator.coinBalance + coinPrice })
             .where(eq(users.id, creatorId));
         }
       });
 
-      return {
-        success: true,
-        message: "Video purchased successfully",
-      };
+      return { success: true, message: "Video purchased successfully" };
     } catch (error) {
       console.error("Error purchasing video:", error);
-      return {
-        success: false,
-        message: "Failed to purchase video",
-      };
+      return { success: false, message: "Failed to purchase video" };
     }
   }
 
   /**
-   * Get all accessible videos in a series for a user
+   * Get all video IDs in a series that the user can access.
    */
   static async getAccessibleVideos(
     userId: string,
@@ -265,23 +250,16 @@ export class VideoAccessService {
   ): Promise<string[]> {
     try {
       const videosList = await db
-        .select({
-          videoId: seriesVideos.videoId,
-          accessType: seriesVideos.accessType,
-        })
+        .select({ videoId: seriesVideos.videoId })
         .from(seriesVideos)
         .where(eq(seriesVideos.seriesId, seriesId));
 
       const accessibleVideoIds: string[] = [];
 
-      for (const video of videosList) {
-        const access = await this.checkVideoAccess(
-          userId,
-          video.videoId,
-          seriesId
-        );
+      for (const v of videosList) {
+        const access = await this.checkVideoAccess(userId, v.videoId, seriesId);
         if (access.hasAccess) {
-          accessibleVideoIds.push(video.videoId);
+          accessibleVideoIds.push(v.videoId);
         }
       }
 

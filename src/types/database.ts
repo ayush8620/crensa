@@ -131,7 +131,6 @@ export interface SeriesFormData {
  description: string;
  category: string;
  tags: string[];
- coinPrice: number;
  thumbnail?: File;
 }
 
@@ -139,7 +138,7 @@ export interface SeriesListItem {
  id: string;
  title: string;
  videoCount: number;
- coinPrice: number;
+ coinPrice: number; // Deprecated - kept for backward compatibility
  viewCount: number;
  earnings: number;
  isActive: boolean;

@@ -8,6 +8,7 @@ import { db } from "@/lib/database";
 import { series, users, creatorProfiles } from "@/lib/database";
 import { eq, desc, asc, and, count, sql } from "drizzle-orm";
 import type { NewSeries, SeriesWithRelations } from "@/types/database";
+import { CacheService } from "@/lib/services/cacheService";
 
 cloudinary.config({
  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,7 +21,6 @@ interface SeriesCreateRequest {
  description?: string;
  category: string;
  tags?: string[];
- coinPrice: number;
  thumbnailUrl?: string;
 }
 
@@ -46,7 +46,6 @@ function validateSeriesCreate(data: any): {
  const validatedData: SeriesCreateRequest = {
  title: "",
  category: "",
- coinPrice: 0,
  };
 
  if (!data.title || typeof data.title !== "string") {
@@ -96,17 +95,6 @@ function validateSeriesCreate(data: any): {
  } else {
  validatedData.tags = data.tags.map((tag: any) => tag.trim());
  }
- }
-
- const coinPrice = Number(data.coinPrice);
- if (isNaN(coinPrice)) {
- errors.push("Coin price must be a number");
- } else if (coinPrice < 1 || coinPrice > 2000) {
- errors.push("Coin price must be between 1 and 2000");
- } else if (!Number.isInteger(coinPrice)) {
- errors.push("Coin price must be a whole number");
- } else {
- validatedData.coinPrice = coinPrice;
  }
 
  if (data.thumbnailUrl !== undefined) {
@@ -164,7 +152,6 @@ export async function POST(request: NextRequest) {
  tags: formData.get("tags")
  ? JSON.parse(formData.get("tags") as string)
  : [],
- coinPrice: parseInt(formData.get("coinPrice") as string),
  thumbnail: formData.get("thumbnail"), // File object
  };
 
@@ -233,8 +220,8 @@ export async function POST(request: NextRequest) {
  description: validatedData.description || null,
  category: validatedData.category,
  tags: validatedData.tags || [],
- totalPrice: validatedData.coinPrice.toString(),
- coinPrice: validatedData.coinPrice,
+ totalPrice: "0.00", // Series is now a free container
+ coinPrice: 0, // Series is now a free container
  thumbnailUrl: validatedData.thumbnailUrl || null,
  videoCount: 0,
  totalDuration: 0,
@@ -316,6 +303,10 @@ export async function POST(request: NextRequest) {
  },
  videos: [],
  };
+
+ // Invalidate browse/discover cache so new series appears immediately
+ CacheService.deleteByPrefix('landing:unified-content:');
+ CacheService.delete('landing:featured-series');
 
  return NextResponse.json({
  success: true,

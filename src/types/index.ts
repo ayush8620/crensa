@@ -144,14 +144,14 @@ export interface Series {
  title: string;
  description?: string;
  thumbnailUrl?: string;
- totalPrice: number;
- coinPrice: number; // Coin-based pricing
+ totalPrice: number; // Deprecated - kept for backward compatibility
+ coinPrice: number; // Deprecated - series is now a free container
  videoCount: number;
  totalDuration: number; // in seconds
  category: string;
  tags: string[];
  viewCount: number;
- totalEarnings: number;
+ totalEarnings: number; // Sum of all video earnings in the series
  isActive: boolean;
  moderationStatus: "pending" | "approved" | "rejected" | "flagged";
  moderationReason?: string;
@@ -174,8 +174,6 @@ export interface SeriesVideo {
  seriesId: string;
  videoId: string;
  orderIndex: number;
- accessType?: "free" | "paid" | "series-only";
- individualCoinPrice?: number;
  createdAt: Date;
 
  video?: Video;
@@ -201,7 +199,6 @@ export interface SeriesFormData {
  description: string;
  category: string;
  tags: string[];
- coinPrice: number;
  thumbnail?: File;
 }
 
@@ -209,7 +206,7 @@ export interface SeriesListItem {
  id: string;
  title: string;
  videoCount: number;
- coinPrice: number;
+ coinPrice: number; // Deprecated - kept for backward compatibility
  viewCount: number;
  earnings: number;
  isActive: boolean;

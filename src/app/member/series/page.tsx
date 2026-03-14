@@ -52,12 +52,23 @@ export default async function MemberSeriesPage() {
 
             return {
                 series: {
-                    ...seriesInfo,
+                    id: seriesInfo.id,
+                    title: seriesInfo.title,
+                    description: seriesInfo.description,
+                    thumbnailUrl: seriesInfo.thumbnailUrl,
+                    coinPrice: seriesInfo.coinPrice || 0,
+                    videoCount: seriesInfo.videoCount,
+                    totalDuration: seriesInfo.totalDuration,
+                    category: seriesInfo.category,
+                    viewCount: seriesInfo.viewCount,
                     creator: {
-                        ...creator,
-                        creatorProfile: creatorProfileData[0] || null,
+                        id: creator.id,
+                        username: creator.username,
+                        creatorProfile: creatorProfileData[0] ? {
+                            displayName: creatorProfileData[0].displayName,
+                            bio: creatorProfileData[0].bio,
+                        } : null,
                     },
-                    videos: videosData.map(v => ({ id: v.id })),
                 },
                 purchaseDate: purchase.purchasedAt,
                 progress: progress[0]

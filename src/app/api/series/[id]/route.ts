@@ -69,7 +69,7 @@ export async function GET(
  title: s.title,
  description: s.description,
  thumbnailUrl: s.thumbnailUrl,
- totalPrice: parseFloat(s.totalPrice),
+ totalPrice: parseFloat(s.totalPrice || '0'),
  coinPrice: s.coinPrice,
  videoCount: s.videoCount,
  totalDuration: s.totalDuration,

@@ -186,12 +186,13 @@ export class SeriesAccessService {
  }
  }
 
- const adjustedPrice = Math.max(0, seriesData.coinPrice - totalDeduction);
+ const seriesCoinPrice = seriesData.coinPrice ?? 0;
+ const adjustedPrice = Math.max(0, seriesCoinPrice - totalDeduction);
 
  const allVideosOwned = seriesVideos.length > 0 && ownedVideos.length === seriesVideos.length;
 
  const result: PriceCalculation = {
- originalPrice: seriesData.coinPrice,
+ originalPrice: seriesCoinPrice,
  ownedVideos,
  totalDeduction,
  adjustedPrice,

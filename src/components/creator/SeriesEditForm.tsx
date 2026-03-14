@@ -41,7 +41,6 @@ export default function SeriesEditForm({
     description: "",
     category: "",
     tags: [],
-    coinPrice: 10,
     thumbnail: undefined,
   });
 
@@ -112,7 +111,6 @@ export default function SeriesEditForm({
         description: series.description || "",
         category: series.category,
         tags: [...series.tags],
-        coinPrice: series.coinPrice,
         thumbnail: undefined,
       });
       setThumbnailPreview(series.thumbnailUrl || null);
@@ -132,7 +130,6 @@ export default function SeriesEditForm({
         formData.description !== (series.description || "") ||
         formData.category !== series.category ||
         JSON.stringify(formData.tags) !== JSON.stringify(series.tags) ||
-        formData.coinPrice !== series.coinPrice ||
         formData.thumbnail !== undefined;
 
       setHasChanges(hasFormChanges);
@@ -205,16 +202,6 @@ export default function SeriesEditForm({
       return;
     }
 
-    if (formData.coinPrice <= 0) {
-      setError("Price must be greater than zero");
-      return;
-    }
-
-    if (formData.coinPrice > 2000) {
-      setError("Price cannot exceed 2000 coins");
-      return;
-    }
-
     if (formData.tags.length > 10) {
       setError("Cannot have more than 10 tags");
       return;
@@ -230,7 +217,6 @@ export default function SeriesEditForm({
       uploadFormData.append("description", formData.description.trim());
       uploadFormData.append("category", formData.category);
       uploadFormData.append("tags", JSON.stringify(formData.tags));
-      uploadFormData.append("coinPrice", formData.coinPrice.toString());
 
       if (formData.thumbnail) {
         uploadFormData.append("thumbnail", formData.thumbnail);
@@ -392,8 +378,7 @@ export default function SeriesEditForm({
               {series.title}
             </p>
             <p className="text-xs text-gray-500">
-              {series.videoCount} videos • {series.coinPrice} coins •{" "}
-              {series.viewCount} views
+              {series.videoCount} videos • {series.viewCount} views
             </p>
           </div>
         </div>
@@ -442,59 +427,29 @@ export default function SeriesEditForm({
         </div>
 
         {}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="edit-series-category"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Category *
-            </label>
-            <select
-              id="edit-series-category"
-              value={formData.category}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, category: e.target.value }))
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.name}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="edit-series-price"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Total Price (₹) *
-            </label>
-            <input
-              id="edit-series-price"
-              type="number"
-              min="1"
-              max="2000"
-              step="1"
-              value={formData.coinPrice}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  coinPrice: Math.max(1, parseInt(e.target.value) || 1),
-                }))
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Price for the entire series
-            </p>
-          </div>
+        <div>
+          <label
+            htmlFor="edit-series-category"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Category *
+          </label>
+          <select
+            id="edit-series-category"
+            value={formData.category}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, category: e.target.value }))
+            }
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            required
+          >
+            <option value="">Select category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {}

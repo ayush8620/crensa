@@ -49,7 +49,7 @@ async function getFeaturedSeriesFromDB(): Promise<{
  })
  .from(series)
  .innerJoin(users, eq(series.creatorId, users.id))
- .innerJoin(creatorProfiles, eq(users.id, creatorProfiles.userId))
+ .leftJoin(creatorProfiles, eq(users.id, creatorProfiles.userId)) // leftJoin: series must not vanish if creator profile row is missing
  .where(
  and(
  eq(series.isActive, true),
@@ -68,12 +68,12 @@ async function getFeaturedSeriesFromDB(): Promise<{
  description: s.description || "",
  thumbnailUrl: s.thumbnailUrl || "",
  episodeCount: s.videoCount,
- creatorName: s.creatorName,
+ creatorName: s.creatorName || "Creator",
  creatorAvatar: s.creatorAvatar || "",
  creatorId: s.creatorId,
  category: s.category,
  tags: (s.tags as string[]) || [],
- price: parseFloat(s.totalPrice.toString()),
+ price: parseFloat((s.totalPrice || '0').toString()),
  viewCount: s.viewCount,
  href: `/series/${s.id}`,
  }));

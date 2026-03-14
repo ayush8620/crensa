@@ -95,14 +95,13 @@ async function getUnifiedContentFromDB(
  createdAt: series.createdAt,
  })
  .from(series)
- .innerJoin(users, eq(series.creatorId, users.id))
- .innerJoin(creatorProfiles, eq(users.id, creatorProfiles.userId))
+ .leftJoin(users, eq(series.creatorId, users.id))
+ .leftJoin(creatorProfiles, eq(users.id, creatorProfiles.userId))
  .where(
  and(
  eq(series.isActive, true),
  eq(series.moderationStatus, "approved"),
- eq(users.isActive, true),
- eq(users.isSuspended, false),
+ sql`${series.videoCount} > 0`,
  categoryFilter ? eq(series.category, categoryFilter) : undefined
  )
  )
@@ -135,14 +134,14 @@ async function getUnifiedContentFromDB(
  title: seriesItem.title,
  description: seriesItem.description || "",
  thumbnailUrl: seriesItem.thumbnailUrl || "",
- creatorName: seriesItem.creatorName,
+ creatorName: seriesItem.creatorName || "Creator",
  creatorAvatar: seriesItem.creatorAvatar || "",
  creatorId: seriesItem.creatorId,
  category: seriesItem.category,
  tags: (seriesItem.tags as string[]) || [],
  episodeCount: seriesItem.videoCount,
  viewCount: seriesItem.viewCount,
- price: parseFloat(seriesItem.totalPrice.toString()),
+ price: parseFloat((seriesItem.totalPrice || '0').toString()),
  href: `/series/${seriesItem.id}`,
  });
  });

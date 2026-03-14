@@ -4,6 +4,11 @@ import { db } from "@/lib/database";
 import { seriesVideos, series, videos } from "@/lib/database/schema";
 import { eq, and } from "drizzle-orm";
 
+/**
+ * Update video pricing within a series
+ * Note: After series refactor, videos have independent pricing.
+ * This endpoint updates the video's coin price directly.
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; videoId: string }> }
@@ -19,20 +24,12 @@ export async function PUT(
 
     const { id: seriesId, videoId } = await params;
     const body = await request.json();
-    const { accessType, individualCoinPrice } = body;
+    const { coinPrice } = body;
 
-    // Validate access type
-    if (!["free", "paid", "series-only"].includes(accessType)) {
+    // Validate coin price
+    if (coinPrice === undefined || coinPrice < 0 || coinPrice > 2000) {
       return NextResponse.json(
-        { success: false, error: "Invalid access type" },
-        { status: 400 }
-      );
-    }
-
-    // Validate coin price for paid videos
-    if (accessType === "paid" && (!individualCoinPrice || individualCoinPrice <= 0)) {
-      return NextResponse.json(
-        { success: false, error: "Paid videos must have a valid coin price" },
+        { success: false, error: "Coin price must be between 0 and 2000" },
         { status: 400 }
       );
     }
@@ -81,25 +78,24 @@ export async function PUT(
       );
     }
 
-    // Update access type
+    // Update video coin price
     await db
-      .update(seriesVideos)
+      .update(videos)
       .set({
-        accessType: accessType as "free" | "paid" | "series-only",
-        individualCoinPrice: accessType === "paid" ? individualCoinPrice : 0,
+        coinPrice: coinPrice,
+        creditCost: (coinPrice / 20).toFixed(2), // Legacy field: convert coins to rupees
       })
-      .where(eq(seriesVideos.id, seriesVideo.id));
+      .where(eq(videos.id, videoId));
 
     return NextResponse.json({
       success: true,
-      message: "Video access type updated successfully",
-      accessType,
-      individualCoinPrice: accessType === "paid" ? individualCoinPrice : 0,
+      message: "Video price updated successfully",
+      coinPrice,
     });
   } catch (error) {
-    console.error("Error updating video access type:", error);
+    console.error("Error updating video price:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to update video access type" },
+      { success: false, error: "Failed to update video price" },
       { status: 500 }
     );
   }

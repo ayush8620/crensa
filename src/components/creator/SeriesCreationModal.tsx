@@ -11,8 +11,6 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Series, SeriesFormData, Category } from "@/types";
-import CoinInput from "@/components/wallet/CoinInput";
-import { coinsToRupees, formatRupees } from "@/lib/utils/coin-utils";
 
 interface SeriesCreationModalProps {
   isOpen: boolean;
@@ -43,7 +41,6 @@ export default function SeriesCreationModal({
     description: "",
     category: "",
     tags: [],
-    coinPrice: 100,
     thumbnail: undefined,
   });
   
@@ -111,7 +108,6 @@ export default function SeriesCreationModal({
         description: "",
         category: "",
         tags: [],
-        coinPrice: 100,
         thumbnail: undefined,
       });
       setTagInput("");
@@ -188,16 +184,6 @@ export default function SeriesCreationModal({
       return;
     }
 
-    if (formData.coinPrice < 1) {
-      setError("Coin price must be at least 1 coin");
-      return;
-    }
-
-    if (formData.coinPrice > 2000) {
-      setError("Coin price cannot exceed 2000 coins");
-      return;
-    }
-
     if (formData.tags.length > 10) {
       setError("Cannot have more than 10 tags");
       return;
@@ -213,7 +199,6 @@ export default function SeriesCreationModal({
       uploadFormData.append("description", formData.description.trim());
       uploadFormData.append("category", formData.category);
       uploadFormData.append("tags", JSON.stringify(formData.tags));
-      uploadFormData.append("coinPrice", formData.coinPrice.toString());
       
       if (formData.thumbnail) {
         uploadFormData.append("thumbnail", formData.thumbnail);
@@ -259,9 +244,7 @@ export default function SeriesCreationModal({
       const createdSeries = responseData.series;
       setSuccess(true);
       
-      
-      const rupeeEquivalent = formatRupees(coinsToRupees(formData.coinPrice));
-      console.log(`Series created successfully! Price: ${formData.coinPrice} coins (${rupeeEquivalent})`);
+      console.log(`Series created successfully as a free container!`);
       
       onSeriesCreated(createdSeries);
 
@@ -343,7 +326,7 @@ export default function SeriesCreationModal({
                   <div className="flex-1">
                     <p className="text-green-700 font-medium">Series created successfully!</p>
                     <p className="text-green-600 text-sm mt-1">
-                      Price: 🪙 {formData.coinPrice} coins ({formatRupees(coinsToRupees(formData.coinPrice))})
+                      You can now upload videos to this series
                     </p>
                   </div>
                 </motion.div>
@@ -430,49 +413,29 @@ export default function SeriesCreationModal({
               </div>
 
               {}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    htmlFor="series-category"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Category *
-                  </label>
-                  <select
-                    id="series-category"
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData(prev => ({ ...prev, category: e.target.value }))
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <CoinInput
-                    label="Series Price"
-                    value={formData.coinPrice}
-                    onChange={(value) =>
-                      setFormData(prev => ({ ...prev, coinPrice: value }))
-                    }
-                    min={1}
-                    max={2000}
-                    showRupeeEquivalent={true}
-                    required={true}
-                    placeholder="Enter coin price"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Price for the entire series (1-2000 coins)
-                  </p>
-                </div>
+              <div>
+                <label
+                  htmlFor="series-category"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Category *
+                </label>
+                <select
+                  id="series-category"
+                  value={formData.category}
+                  onChange={(e) =>
+                    setFormData(prev => ({ ...prev, category: e.target.value }))
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {}

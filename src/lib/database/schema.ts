@@ -113,8 +113,8 @@ export const series = pgTable(
         title: varchar("title", { length: 255 }).notNull(),
         description: text("description"),
         thumbnailUrl: text("thumbnail_url"),
-        totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
-        coinPrice: integer("coin_price").notNull(), // Coin-based pricing
+        totalPrice: decimal("total_price", { precision: 10, scale: 2 }).default("0.00"), // Optional - for backward compatibility
+        coinPrice: integer("coin_price").default(0), // Optional - series is now a free container
         videoCount: integer("video_count").default(0).notNull(),
         totalDuration: integer("total_duration").default(0).notNull(), // in seconds
         category: varchar("category", { length: 100 }).notNull(),
@@ -928,18 +928,14 @@ export const seriesVideos = pgTable(
             .notNull()
             .references(() => videos.id, { onDelete: "cascade" }),
         orderIndex: integer("order_index").notNull(),
-        accessType: varchar("access_type", { length: 20 })
-            .default("series-only")
-            .notNull()
-            .$type<"free" | "paid" | "series-only">(),
-        individualCoinPrice: integer("individual_coin_price").default(0),
+        // Simplified: videos in series are accessed individually based on their own coinPrice
+        // No need for accessType - the video's coinPrice determines if it's free (0) or paid (>0)
         createdAt: timestamp("created_at").defaultNow().notNull(),
     },
     (table) => ({
         seriesIdIdx: index("series_videos_series_id_idx").on(table.seriesId),
         videoIdIdx: index("series_videos_video_id_idx").on(table.videoId),
         orderIndexIdx: index("series_videos_order_index_idx").on(table.orderIndex),
-        accessTypeIdx: index("series_videos_access_type_idx").on(table.accessType),
         uniqueSeriesVideo: index("series_videos_series_video_unique").on(table.seriesId, table.videoId),
         uniqueSeriesOrder: index("series_videos_series_order_unique").on(table.seriesId, table.orderIndex),
     })

@@ -62,7 +62,9 @@ export async function GET(request: NextRequest) {
  and(
  eq(series.isActive, true),
  eq(series.moderationStatus, "approved"),
- sql`${series.videoCount} > 0` // Only show series with videos
+ sql`${series.videoCount} > 0`, // Only show series that have at least one video
+ eq(users.isActive, true),
+ eq(users.isSuspended, false)
  )
  )
  .orderBy(orderBy)

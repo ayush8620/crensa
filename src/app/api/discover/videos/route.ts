@@ -58,7 +58,10 @@ export async function GET(request: NextRequest) {
  maxCredits
  });
 
- let whereConditions = [eq(videos.isActive, true)];
+ let whereConditions = [
+    eq(videos.isActive, true),
+    eq(videos.moderationStatus, "approved"),
+  ];
 
  if (search) {
  whereConditions.push(
@@ -159,6 +162,7 @@ export async function GET(request: NextRequest) {
  thumbnailUrl: videos.thumbnailUrl,
  duration: videos.duration,
  creditCost: videos.creditCost,
+ coinPrice: videos.coinPrice,
  category: videos.category,
  tags: videos.tags,
  aspectRatio: videos.aspectRatio,
@@ -190,6 +194,7 @@ export async function GET(request: NextRequest) {
  thumbnailUrl: video.thumbnailUrl || "/api/placeholder/400/225",
  duration: video.duration || 0,
  creditCost: parseFloat(video.creditCost?.toString() || "0"),
+ coinPrice: video.coinPrice ?? 0,
  category: video.category || "general",
  tags: Array.isArray(video.tags) ? video.tags : [],
  aspectRatio: video.aspectRatio || "16:9",

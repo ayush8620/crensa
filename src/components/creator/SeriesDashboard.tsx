@@ -350,7 +350,7 @@ function SeriesListRow({
  )}
  </div>
  
- <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm text-gray-600">
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
  <div className="flex items-center gap-1">
  <PlayIcon className="w-4 h-4" />
  <span className={series.videoCount === 0 ? "text-gray-400 italic" : ""}>
@@ -359,10 +359,6 @@ function SeriesListRow({
  {series.videoCount === 0 && (
  <span className="ml-1 text-xs text-yellow-600" title="No videos in this series">⚠️</span>
  )}
- </div>
- <div className="flex items-center gap-1 text-xl">
- 🪙
- <span>{(series.coinPrice || 0).toLocaleString()} coins</span>
  </div>
  <div className="flex items-center gap-1">
  <EyeIcon className="w-4 h-4" />
