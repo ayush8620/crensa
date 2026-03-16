@@ -90,9 +90,10 @@ function OnboardingPage() {
  }
  } else if (response.status === 409) {
 
- console.log('Profile already exists, redirecting...');
- 
- if (role === 'creator') {
+ // Redirect to the EXISTING role's dashboard, not the requested one
+ console.log('Profile already exists, redirecting to existing role dashboard...');
+ const existingRole = data?.user?.role;
+ if (existingRole === 'creator') {
  window.location.href = '/creator/dashboard';
  } else {
  window.location.href = '/dashboard';
