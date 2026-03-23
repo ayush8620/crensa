@@ -51,6 +51,10 @@ export const crensaAuthTheme = {
 
  formFieldLabel: "text-primary-navy font-medium",
 
+ // Hide "Optional" hint on first name field only, show * instead
+ formFieldOptionalFieldHint__firstName: "hidden",
+ formFieldLabel__firstName: "text-primary-navy font-medium after:content-['*'] after:ml-0.5 after:text-red-500",
+
  footerActionLink: "text-accent-pink hover:text-accent-bright-pink transition-colors duration-200 font-medium",
 
  identityPreviewText: "text-primary-navy",

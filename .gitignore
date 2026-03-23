@@ -265,3 +265,5 @@ tramp
 config.local.js
 # clerk configuration (can include secrets)
 /.clerk/
+build_output.txt
+backups/

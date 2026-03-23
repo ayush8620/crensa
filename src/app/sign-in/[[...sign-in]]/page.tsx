@@ -22,6 +22,7 @@ export default async function SignInPage({
  <SignIn
  appearance={crensaAuthTheme}
  forceRedirectUrl="/api/auth/post-signin"
+ unsafeMetadata={{ role }}
  />
  </AuthPageLayout>
  );
