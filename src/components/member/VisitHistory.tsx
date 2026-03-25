@@ -74,7 +74,7 @@ export function VisitHistory({
         } else {
             apiActions.execute();
         }
-    }, [limit, offset, isInitialized]);
+    }, [limit, offset, isInitialized, apiActions]);
 
     const handleRetry = () => {
         apiActions.retry();
@@ -419,7 +419,7 @@ export function VisitHistoryCompact({
             }, 200);
             return () => clearTimeout(timer);
         }
-    }, [limit, isInitialized]);
+    }, [limit, isInitialized, apiActions]);
 
     const handleRetry = () => {
         apiActions.retry();

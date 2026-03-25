@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 interface PublicHeaderProps {
@@ -21,9 +22,11 @@ export default function PublicHeader({ className = '' }: PublicHeaderProps) {
                         className="flex items-center space-x-2 group focus:outline-none focus:ring-2 focus:ring-primary-neon-yellow focus:ring-offset-2 rounded-lg"
                     >
                         <div className="w-10 h-10 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                            <img
+                            <Image
                                 src="/icons/icon-192.png"
                                 alt="Crensa logo"
+                                width={40}
+                                height={40}
                                 className="w-10 h-10"
                             />
                         </div>

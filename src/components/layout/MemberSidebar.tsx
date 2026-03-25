@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useResponsive, useSidebarTouch } from "@/hooks/useResponsive";
@@ -284,9 +285,11 @@ export default function MemberSidebar({ isOpen, onClose }: MemberSidebarProps) {
                             onClick={isMobile ? onClose : undefined}
                         >
                             <div className="w-14 h-14 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                <img
+                                <Image
                                     src="/icons/icon-192.png"
                                     alt="Crensa logo"
+                                    width={56}
+                                    height={56}
                                     className="w-14 h-14"
                                 />
                             </div>

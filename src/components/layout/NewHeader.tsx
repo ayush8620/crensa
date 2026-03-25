@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { getHomeUrl } from "@/lib/navigation-utils";
@@ -79,9 +80,11 @@ export default function NewHeader({ isScrolled: propIsScrolled, alwaysVisible = 
                             onClick={closeMobileMenu}
                         >
                             <div className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                <img
+                                <Image
                                     src="/icons/icon-192.png"
                                     alt="Crensa logo"
+                                    width={56}
+                                    height={56}
                                     className="w-10 h-10 md:w-14 md:h-14"
                                 />
                             </div>
@@ -205,9 +208,11 @@ export default function NewHeader({ isScrolled: propIsScrolled, alwaysVisible = 
                                 onClick={closeMobileMenu}
                             >
                                 <div className="w-10 h-10 flex items-center justify-center">
-                                    <img
+                                    <Image
                                         src="/icons/icon-192.png"
                                         alt="Crensa logo"
+                                        width={40}
+                                        height={40}
                                         className="w-10 h-10"
                                     />
                                 </div>
