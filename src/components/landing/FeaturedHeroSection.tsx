@@ -72,7 +72,7 @@ export default function FeaturedHeroSection() {
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">Coming Soon</p>
                 <p className="text-xs text-gray-600 mt-2 line-clamp-3">
-                  She got heartbroken. Now, she's moving on. But is love back in the picture?
+                  She got heartbroken. Now, she is moving on. But is love back in the picture?
                 </p>
               </div>
 
@@ -109,7 +109,7 @@ export default function FeaturedHeroSection() {
                 </h3>
                 <p className="text-xs text-gray-500 mt-1">Coming Soon</p>
                 <p className="text-xs text-gray-600 mt-2 line-clamp-3">
-                  A CEO is humiliated and kicked out of her parents' anniversary dinner.
+                  A CEO is humiliated and kicked out of her parents anniversary dinner.
                 </p>
               </div>
 

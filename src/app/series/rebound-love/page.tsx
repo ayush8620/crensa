@@ -44,7 +44,7 @@ export default function ReboundLoveSeriesPage() {
               </h1>
               
               <p className="text-lg text-neutral-dark-gray leading-relaxed mb-6">
-                She got heartbroken. Now, she's moving on. But is love back in the picture? 
+                She got heartbroken. Now, she is moving on. But is love back in the picture? 
                 A heartwarming romantic drama about second chances and finding yourself again.
               </p>
 
@@ -65,7 +65,7 @@ export default function ReboundLoveSeriesPage() {
                 💕 Videos Coming Soon
               </h3>
               <p className="text-neutral-dark-gray">
-                We're working hard to bring you this beautiful love story. Check back soon for updates!
+                We are working hard to bring you this beautiful love story. Check back soon for updates!
               </p>
             </div>
 

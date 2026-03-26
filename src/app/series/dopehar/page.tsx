@@ -63,7 +63,7 @@ export default function DopeharSeriesPage() {
                 🎬 Videos Coming Soon
               </h3>
               <p className="text-neutral-dark-gray">
-                We're working hard to bring you amazing content. Check back soon for updates!
+                We are working hard to bring you amazing content. Check back soon for updates!
               </p>
             </div>
 

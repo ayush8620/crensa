@@ -44,7 +44,7 @@ export default function QueenMomRulesSeriesPage() {
               </h1>
               
               <p className="text-lg text-neutral-dark-gray leading-relaxed mb-6">
-                A CEO is humiliated and kicked out of her parents' anniversary dinner. 
+                A CEO is humiliated and kicked out of her parents anniversary dinner. 
                 A powerful story about family, resilience, and the strength of a woman who refuses to be defined by others.
               </p>
 
@@ -65,7 +65,7 @@ export default function QueenMomRulesSeriesPage() {
                 👑 Videos Coming Soon
               </h3>
               <p className="text-neutral-dark-gray">
-                We're working hard to bring you this powerful story. Check back soon for updates!
+                We are working hard to bring you this powerful story. Check back soon for updates!
               </p>
             </div>
 
